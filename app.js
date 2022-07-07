@@ -11,9 +11,21 @@ class Game {
   yV;
   foodX;
   foodY;
+  firstBonus = new Object();
+  secondBonus = new Object();
+  thirdBonus = new Object();
   score;
 
   constructor() {
+    this.firstBonus.drawn = false;
+    this.firstBonus.pos = [0, 0];
+    this.firstBonus.color = 'blue';
+    this.secondBonus.drawn = false;
+    this.secondBonus.pos = [0, 0];
+    this.secondBonus.color = 'yellow';
+    this.thirdBonus.drawn = false;
+    this.thirdBonus.pos = [0, 0];
+    this.thirdBonus.color = 'green';
     this.canvas = document.querySelector('canvas');
     this.gameField = canvas.getContext('2d');
     this.tileCount = 20;
@@ -21,7 +33,7 @@ class Game {
     this.speed = 7;
     this.xV = 0;
     this.yV = 0;
-    this.score = 0;
+    this.score = 4;
     this.generateFood();
     this.snake = new Snake();
     document.addEventListener('keydown', this.keyDown.bind(this));
@@ -31,23 +43,54 @@ class Game {
   drawGame() {
     this.changeSnakePos();
 
-    // let result = this.isGameOver();
-    // if(result){
-    //     return;
-    // }
-
+    let result = this.isGameOver();
+    if (result) {
+      return;
+    }
+    if (this.score >= 5) {
+      this.drawBonus(this.firstBonus);
+      console.log(this.firstBonus.pos);
+    }
+    if (this.score >= 10) {
+      this.drawBonus(this.secondBonus);
+    }
+    if (this.score >= 15) {
+      this.drawBonus(this.thirdBonus);
+    }
     this.clearScreen();
     this.drawFood();
     this.drawSnake();
     this.checkAppleCol();
+    this.checkBonusCol();
     setTimeout(this.drawGame.bind(this), 1000 / this.speed);
   }
 
-  //   isGameOver(){
-  //     let gameOver = false;
+  isGameOver() {
+    let gameOver = false;
 
-  //     //
-  //   }
+    //body
+    if (this.xV === 0 && this.yV === 0) {
+      return false;
+    }
+
+    this.snake.snakeParts.forEach((element) => {
+      if (element.x === this.snake.headX && element.y === this.snake.headY) {
+        gameOver = true;
+      }
+    });
+
+    if (gameOver) {
+      this.gameField.fillStyle = 'white';
+      this.gameField.font = '50px Verdana';
+      this.gameField.fillText(
+        'Game Over!',
+        this.canvas.width / 6.5,
+        this.canvas.height / 2
+      );
+    }
+
+    return gameOver;
+  }
 
   clearScreen() {
     this.gameField.fillStyle = 'black';
@@ -97,8 +140,50 @@ class Game {
   }
   generateFood() {
     this.foodX = Math.floor(Math.random() * this.tileCount);
-
     this.foodY = Math.floor(Math.random() * this.tileCount);
+  }
+  generateBonus(bonus) {
+    this.bonus.pos[0] = Math.floor(Math.random() * this.tileCount);
+    this.bonus.pos[1] = Math.floor(Math.random() * this.tileCount);
+  }
+  checkBonusCol() {
+    if (
+      this.snake.headX === this.firstBonus.pos[0] &&
+      this.snake.headY === this.firstBonus.pos[1] &&
+      this.firstBonus.drawn
+    ) {
+      let timeout = Math.random() * 10;
+
+      setTimeout(this.generateBonus(this.firstBonus).bind(this), timeout);
+    }
+    if (
+      this.snake.headX === this.secondBonus[0] &&
+      this.snake.headY === this.secondBonus[1] &&
+      this.secondBonus.drawn
+    ) {
+      let timeout = Math.random() * 10;
+      setTimeout(this.generateBonus(secondBonus).bind(this), timeout);
+    }
+    if (
+      this.snake.headX === this.firstBonus[0] &&
+      this.snake.headY === this.thirdBonus[1] &&
+      this.thirdBonus.drawn
+    ) {
+      let timeout = Math.random() * 10;
+      setTimeout(this.generateBonus(this.thirdBonus).bind(this), timeout);
+    }
+  }
+
+  drawBonus(bonus) {
+    console.log('drawing bonus:' + bonus.color);
+    bonus.drawn = true;
+    this.gameField.fillStyle = bonus.color;
+    this.gameField.fillRect(
+      bonus.pos[0] * this.tileCount,
+      bonus.pos[1] * this.tileCount,
+      this.tileSize,
+      this.tileSize
+    );
   }
 
   keyDown(event) {
@@ -137,13 +222,13 @@ class Game {
   changeSnakePos() {
     this.snake.headX += this.xV;
     this.snake.headY += this.yV;
-    if (this.snake.headX > this.tileCount-1) {
+    if (this.snake.headX > this.tileCount - 1) {
       this.snake.headX = 0;
     }
     if (this.snake.headX < 0) {
       this.snake.headX = this.tileCount - 1;
     }
-    if (this.snake.headY > this.tileCount-1) {
+    if (this.snake.headY > this.tileCount - 1) {
       this.snake.headY = 0;
     }
     if (this.snake.headY < 0) {
