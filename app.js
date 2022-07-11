@@ -14,53 +14,71 @@ class Game {
   firstBonus = new Object();
   secondBonus = new Object();
   thirdBonus = new Object();
+  forthBonus = new Object();
   score;
+  scoreDisplay;
+  display;
 
   constructor() {
-    this.firstBonus.drawn = false;
-    this.firstBonus.pos = [0, 0];
+    this.snake = new Snake();
+    this.tileCount = 20;
+    this.firstBonus.draw = false;
+    this.firstBonus.pos = [];
     this.firstBonus.color = 'blue';
-    this.secondBonus.drawn = false;
-    this.secondBonus.pos = [0, 0];
+    this.generateBonus(this.firstBonus);
+    this.secondBonus.draw = true;
+    this.secondBonus.pos = [];
     this.secondBonus.color = 'yellow';
-    this.thirdBonus.drawn = false;
-    this.thirdBonus.pos = [0, 0];
-    this.thirdBonus.color = 'green';
+    this.generateBonus(this.secondBonus);
+    this.thirdBonus.draw = true;
+    this.thirdBonus.pos = [];
+    this.thirdBonus.color = 'grey';
+    this.generateBonus(this.thirdBonus);
+    this.forthBonus.draw = true;
+    this.forthBonus.pos = [];
+    this.forthBonus.color = '#19E3BE';
+    this.generateBonus(this.forthBonus);
     this.canvas = document.querySelector('canvas');
     this.gameField = canvas.getContext('2d');
-    this.tileCount = 20;
     this.tileSize = this.canvas.width / this.tileCount - 2;
-    this.speed = 7;
+    this.speed = 8;
     this.xV = 0;
     this.yV = 0;
-    this.score = 4;
-    this.generateFood();
-    this.snake = new Snake();
+    this.score = 3;
+    this.scoreDisplay = document.createElement('h2');
+    this.display = document.querySelector('body');
+    this.display.append(this.scoreDisplay);
+    
     document.addEventListener('keydown', this.keyDown.bind(this));
+    this.generateFood();
     this.drawGame();
   }
 
   drawGame() {
+    this.scoreDisplay.textContent = `Score: ${this.score}`;
     this.changeSnakePos();
 
     let result = this.isGameOver();
     if (result) {
       return;
     }
-    if (this.score >= 5) {
+
+    this.clearScreen();
+    if (this.score >= 5 && this.firstBonus.draw) {
       this.drawBonus(this.firstBonus);
-      console.log(this.firstBonus.pos);
     }
-    if (this.score >= 10) {
+    if (this.score >= 10 && this.secondBonus.draw) {
       this.drawBonus(this.secondBonus);
     }
-    if (this.score >= 15) {
+    if (this.score >= 15 && this.thirdBonus.draw) {
       this.drawBonus(this.thirdBonus);
     }
-    this.clearScreen();
+    if (this.score >= 20 && this.forthBonus.draw) {
+      this.drawBonus(this.forthBonus);
+    }
     this.drawFood();
     this.drawSnake();
-    this.checkAppleCol();
+    this.checkFoodCol();
     this.checkBonusCol();
     setTimeout(this.drawGame.bind(this), 1000 / this.speed);
   }
@@ -130,7 +148,7 @@ class Game {
     );
   }
 
-  checkAppleCol() {
+  checkFoodCol() {
     if (this.snake.headX === this.foodX && this.snake.headY === this.foodY) {
       this.score += 1;
       this.generateFood();
@@ -141,42 +159,79 @@ class Game {
   generateFood() {
     this.foodX = Math.floor(Math.random() * this.tileCount);
     this.foodY = Math.floor(Math.random() * this.tileCount);
+    this.snake.snakeParts.forEach((ele) => {
+      if (this.foodX === ele.x && this.foodY === ele.y) {
+        this.generateFood();
+      }
+    });
   }
   generateBonus(bonus) {
-    this.bonus.pos[0] = Math.floor(Math.random() * this.tileCount);
-    this.bonus.pos[1] = Math.floor(Math.random() * this.tileCount);
+    bonus.draw = true;
+    bonus.pos[0] = Math.floor(Math.random() * this.tileCount);
+    bonus.pos[1] = Math.floor(Math.random() * this.tileCount);
+    console.log('generating Bonus at: ' + bonus.pos[0] + ':' + bonus.pos[1]);
+    this.snake.snakeParts.forEach((ele) => {
+      if (bonus.pos[0] === ele.x && bonus.pos[1] === ele.y) {
+        console.log('generate again');
+        this.generateBonus(bonus);
+        
+      }
+    });
   }
   checkBonusCol() {
+    let timeout = Math.random() * 10000 + 5000;
     if (
       this.snake.headX === this.firstBonus.pos[0] &&
       this.snake.headY === this.firstBonus.pos[1] &&
-      this.firstBonus.drawn
+      this.firstBonus.draw && this.score >= 5
     ) {
-      let timeout = Math.random() * 10;
-
-      setTimeout(this.generateBonus(this.firstBonus).bind(this), timeout);
+      this.firstBonus.draw = false;
+      setTimeout(this.generateBonus.bind(this), timeout, this.firstBonus);
+      this.speed /= 5;
+      setTimeout(
+        function () {
+          this.speed = 15;
+        }.bind(this),
+        3000
+      );
     }
     if (
-      this.snake.headX === this.secondBonus[0] &&
-      this.snake.headY === this.secondBonus[1] &&
-      this.secondBonus.drawn
+      this.snake.headX === this.secondBonus.pos[0] &&
+      this.snake.headY === this.secondBonus.pos[1] &&
+      this.secondBonus.draw && this.score >= 10
     ) {
-      let timeout = Math.random() * 10;
-      setTimeout(this.generateBonus(secondBonus).bind(this), timeout);
+      this.secondBonus.draw = false;
+      setTimeout(this.generateBonus.bind(this), timeout, this.secondBonus);
+      this.speed *= 5;
+      setTimeout(
+        function () {
+          this.speed = 7;
+        }.bind(this),
+        3000
+      );
     }
     if (
-      this.snake.headX === this.firstBonus[0] &&
-      this.snake.headY === this.thirdBonus[1] &&
-      this.thirdBonus.drawn
+      this.snake.headX === this.thirdBonus.pos[0] &&
+      this.snake.headY === this.thirdBonus.pos[1] &&
+      this.thirdBonus.draw&& this.score >= 15
     ) {
-      let timeout = Math.random() * 10;
-      setTimeout(this.generateBonus(this.thirdBonus).bind(this), timeout);
+      this.thirdBonus.draw = false;
+      setTimeout(this.generateBonus.bind(this), timeout, this.thirdBonus);
+      this.snake.snakeParts.shift();
+      this.snake.tailLength--;
+    }
+    if (
+      this.snake.headX === this.forthBonus.pos[0] &&
+      this.snake.headY === this.forthBonus.pos[1] &&
+      this.forthBonus.draw&& this.score >= 20
+    ) {
+      this.forthBonus.draw = false;
+      setTimeout(this.generateBonus.bind(this), timeout, this.forthBonus);
+      this.snake.tailLength++;
     }
   }
 
   drawBonus(bonus) {
-    console.log('drawing bonus:' + bonus.color);
-    bonus.drawn = true;
     this.gameField.fillStyle = bonus.color;
     this.gameField.fillRect(
       bonus.pos[0] * this.tileCount,
@@ -245,7 +300,7 @@ class Snake {
   constructor() {
     this.headX = 10;
     this.headY = 10;
-    this.tailLength = 2;
+    this.tailLength = 10;
   }
 }
 
@@ -258,8 +313,11 @@ class SnakeParts {
 
 const game = new Game();
 
+
 // function refresh(){
 //     console.log('refreshing');
 //     setTimeout(refresh, 1000);
 // }
 // refresh();
+
+//https://stackoverflow.com/questions/71570107/javascript-snake-game-too-much-recursion-error
