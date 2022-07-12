@@ -20,41 +20,57 @@ class Game {
   display;
 
   constructor() {
-
-  }
-
-  init(){
-    this.snake = new Snake();
     this.tileCount = 20;
-    this.firstBonus.draw = false;
-    this.firstBonus.pos = [];
-    this.firstBonus.color = 'blue';
-    this.generateBonus(this.firstBonus);
-    this.secondBonus.draw = true;
-    this.secondBonus.pos = [];
-    this.secondBonus.color = 'yellow';
-    this.generateBonus(this.secondBonus);
-    this.thirdBonus.draw = true;
-    this.thirdBonus.pos = [];
-    this.thirdBonus.color = 'grey';
-    this.generateBonus(this.thirdBonus);
-    this.forthBonus.draw = true;
-    this.forthBonus.pos = [];
-    this.forthBonus.color = '#19E3BE';
-    this.generateBonus(this.forthBonus);
+    this.firstBonus = {
+      draw: false,
+      pos: [],
+      color: 'blue',
+    };
+    this.secondBonus = {
+      draw: false,
+      pos: [],
+      color: 'yellow',
+    };
+    this.thirdBonus = {
+      draw: false,
+      pos: [],
+      color: 'grey',
+    };
+    this.forthBonus = {
+      draw: false,
+      pos: [],
+      color: '#19E3BE',
+    };
+    this.speed = 10;
+
     this.canvas = document.querySelector('canvas');
     this.gameField = canvas.getContext('2d');
-    this.tileSize = this.canvas.width / this.tileCount - 2;
-    this.speed = 10;
-    this.xV = 0;
-    this.yV = 0;
-    this.score = 3;
+    this.setupTileSize();
     this.scoreDisplay = document.createElement('h2');
     this.display = document.querySelector('body');
     this.display.append(this.scoreDisplay);
     document.addEventListener('keydown', this.keyDown.bind(this));
+  }
+
+  setupTileSize() {
+    this.tileSize = this.canvas.width / this.tileCount - 2;
+  }
+
+  init() {
+    this.setupNewGame();
+    this.snake = new Snake();
+    this.generateBonus(this.firstBonus);
+    this.generateBonus(this.secondBonus);
+    this.generateBonus(this.thirdBonus);
+    this.generateBonus(this.forthBonus);
     this.generateFood();
     this.drawGame();
+  }
+
+  setupNewGame() {
+    this.score = 0;
+    this.xV = 0;
+    this.yV = 0;
   }
 
   drawGame() {
@@ -181,14 +197,19 @@ class Game {
       }
     });
   }
+
+  shouldDrawBonus(bonus, minScore) {
+    return (
+      this.snake.headX === bonus.pos[0] &&
+      this.snake.headY === bonus.pos[1] &&
+      bonus.draw &&
+      this.score >= minScore
+    );
+  }
+
   checkBonusCol() {
     let timeout = Math.random() * 10000 + 5000;
-    if (
-      this.snake.headX === this.firstBonus.pos[0] &&
-      this.snake.headY === this.firstBonus.pos[1] &&
-      this.firstBonus.draw &&
-      this.score >= 5
-    ) {
+    if (this.shouldDrawBonus(this.firstBonus, 5)) {
       this.firstBonus.draw = false;
       setTimeout(this.generateBonus.bind(this), timeout, this.firstBonus);
       this.speed /= 5;
@@ -199,12 +220,7 @@ class Game {
         3000
       );
     }
-    if (
-      this.snake.headX === this.secondBonus.pos[0] &&
-      this.snake.headY === this.secondBonus.pos[1] &&
-      this.secondBonus.draw &&
-      this.score >= 10
-    ) {
+    if (this.shouldDrawBonus(this.secondBonus, 10)) {
       this.secondBonus.draw = false;
       setTimeout(this.generateBonus.bind(this), timeout, this.secondBonus);
       this.speed *= 5;
@@ -215,23 +231,13 @@ class Game {
         3000
       );
     }
-    if (
-      this.snake.headX === this.thirdBonus.pos[0] &&
-      this.snake.headY === this.thirdBonus.pos[1] &&
-      this.thirdBonus.draw &&
-      this.score >= 15
-    ) {
+    if (this.shouldDrawBonus(this.thirdBonus, 15)) {
       this.thirdBonus.draw = false;
       setTimeout(this.generateBonus.bind(this), timeout, this.thirdBonus);
       this.snake.snakeParts.shift();
       this.snake.tailLength--;
     }
-    if (
-      this.snake.headX === this.forthBonus.pos[0] &&
-      this.snake.headY === this.forthBonus.pos[1] &&
-      this.forthBonus.draw &&
-      this.score >= 20
-    ) {
+    if (this.shouldDrawBonus(this.forthBonus, 20)) {
       this.forthBonus.draw = false;
       setTimeout(this.generateBonus.bind(this), timeout, this.forthBonus);
       this.snake.tailLength++;
@@ -323,7 +329,7 @@ const gameWindow = document.querySelector('body');
 btn.classList.add('btn');
 gameWindow.append(btn);
 btn.textContent = 'Start new game';
+const game = new Game();
 btn.addEventListener('click', () => {
-  const game = new Game();
-  game.init()
+  game.init();
 });
