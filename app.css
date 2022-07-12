@@ -9,3 +9,7 @@ body{
 canvas{
     box-shadow: black 20px 10px 50px;
 }
+
+.btn{
+    margin-top: 20px;
+}
