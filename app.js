@@ -45,7 +45,7 @@ class Game {
     this.canvas = document.querySelector('canvas');
     this.gameField = canvas.getContext('2d');
     this.tileSize = this.canvas.width / this.tileCount - 2;
-    this.speed = 8;
+    this.speed = 10;
     this.xV = 0;
     this.yV = 0;
     this.score = 3;
@@ -307,7 +307,7 @@ class Snake {
   constructor() {
     this.headX = 10;
     this.headY = 10;
-    this.tailLength = 10;
+    this.tailLength = 2;
   }
 }
 
